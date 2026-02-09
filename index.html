@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Météo Widget</title>
+    <link rel="stylesheet" href="style4.css">
+</head>
+<body>
+    <div class="weather-widget">
+        <div class="widget-title">Météo</div>
+        
+        <div class="controls">
+            <button id="bouton">Sélectionner une ville</button>
+            
+            <select id="ville">
+                <option data-lat="47.3167" data-lon="5.0167">Dijon</option>
+                <option data-lat="48.8566" data-lon="2.3522">Paris</option>
+                <option data-lat="45.7640" data-lon="4.8357">Lyon</option>
+                <option data-lat="43.2965" data-lon="5.3698">Marseille</option>
+                <option data-lat="43.6047" data-lon="1.4442">Toulouse</option>
+                <option data-lat="44.8378" data-lon="-0.5792">Bordeaux</option>
+                <option data-lat="50.6292" data-lon="3.0573">Lille</option>
+                <option data-lat="48.5734" data-lon="7.7521">Strasbourg</option>
+                <option data-lat="47.2184" data-lon="-1.5536">Nantes</option>
+                <option data-lat="45.1885" data-lon="5.7245">Grenoble</option>
+                <option data-lat="49.4944" data-lon="0.1079">Le Havre</option>
+                <option data-lat="43.7102" data-lon="7.2620">Nice</option>
+                <option data-lat="49.2583" data-lon="4.0317">Reims</option>
+                <option data-lat="45.7772" data-lon="3.0870">Clermont-Ferrand</option>
+                <option data-lat="47.9029" data-lon="1.9093">Orléans</option>
+                <option data-lat="46.5802" data-lon="0.3404">Poitiers</option>
+                <option data-lat="45.4397" data-lon="4.3872">Saint-Étienne</option>
+                <option data-lat="48.3904" data-lon="-4.4861">Brest</option>
+            </select>
+
+            <label for="country">Rechercher</label>
+            <input type="text" name="country" id="country" list="suggestions" placeholder="Entrez une ville...">
+            <datalist id="suggestions"></datalist>
+
+            <button id="btn">Valider</button>
+        </div>
+
+        <div class="weather-display">
+            <p id="demo">--°C</p>
+        </div>
+    </div>
+
+    <script>
+        const datalist = document.getElementById('suggestions');
+        let lastResults = [];
+        const bouton = document.getElementById('bouton');
+        const demo = document.getElementById('demo');
+        const select = document.getElementById('ville');
+        const btn = document.getElementById('btn');
+        const input = document.getElementById('country');
+        let country = "";
+        let long = 0; 
+        let lat = 0;
+        select.style.display = "block";
+
+        bouton.addEventListener('click', () => {
+            if(select.style.display === "none"){
+                select.style.display = "block";
+            } else {
+                select.style.display = "none";
+            }
+        });
+
+        btn.addEventListener('click', async () => {
+            let a = input.value.trim(); 
+            country = a.split(",")[0].trim(); 
+            if(!country) {
+                alert("Saisie vide");
+                return;
+            }
+            try {
+                await geo(country);
+                select.style.display = "none";
+            } catch(e) {
+                alert("Ville introuvable ou erreur API");
+            }       
+        });
+
+        input.addEventListener("input", async () => {
+            const q = input.value.trim();
+            if (q.length < 3) {
+                datalist.innerHTML = "";
+                lastResults = [];
+                return;
+            }
+
+            const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=8&language=fr&format=json`;
+            const res = await fetch(geoUrl);
+            const data = await res.json();
+
+            datalist.innerHTML = "";
+            lastResults = data.results || [];
+
+            lastResults.forEach(r => {
+                const opt = document.createElement("option");
+                opt.value = `${r.name}${r.admin1 ? ", " + r.admin1 : ""}${r.country ? ", " + r.country : ""}`;
+                datalist.appendChild(opt);
+            });
+        });
+
+        select.addEventListener('change', () => {
+            const optionSelected = select.options[select.selectedIndex];
+            lat = optionSelected.dataset.lat;
+            long = optionSelected.dataset.lon;
+            meteo(lat, long);
+        });
+           
+        async function geo(country) {
+            const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(country)}&count=1&language=fr&format=json`;
+            const geo = await fetch(geoUrl);
+            const geoData = await geo.json();
+            if(!geoData.results || geoData.results.length === 0){
+                throw new Error("Aucun résultat");
+            }            
+            
+            long = geoData.results[0].longitude;
+            lat = geoData.results[0].latitude;
+            meteo(lat, long);
+        }
+
+        const optionSelected = select.options[select.selectedIndex];
+        lat = optionSelected.dataset.lat;
+        long = optionSelected.dataset.lon;
+
+        async function meteo(a, b) {
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${a}&longitude=${b}&current_weather=true`;
+            const response = await fetch(url);
+            if(!response.ok){
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const data = await response.json();
+            const code = data.current_weather.weathercode;
+            const isDay = data.current_weather.is_day; 
+            const icon = getWeatherIcon(code, isDay);
+            const temperature = data.current_weather.temperature;
+            demo.textContent = `${icon} ${temperature}°C`;
+        }
+
+        function getWeatherIcon(code, isDay) {
+            if (code === 0) return isDay ? "☀️" : "🌙";
+            if (code === 1 || code === 2) return isDay ? "🌤️" : "☁️";
+            if (code === 3) return "☁️";
+            if (code === 45 || code === 48) return "🌫️";
+            if ([51,53,55,56,57].includes(code)) return "🌦️";
+            if ([61,63,65].includes(code)) return "🌧️";
+            if ([66,67].includes(code)) return "🌧️❄️";
+            if ([71,73,75,77].includes(code)) return "❄️";
+            if ([80,81,82].includes(code)) return "🌧️";
+            if ([85,86].includes(code)) return "🌨️";
+            if ([95,96,99].includes(code)) return "⛈️";
+            return "❔";
+        }
+
+        meteo(lat, long);
+    </script>
+</body>
+</html>
