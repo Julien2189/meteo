@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <button id="bouton">selectionnez la ville</button>
+    <select id="ville">
+  <option data-lat="47.3167" data-lon="5.0167">Dijon</option>
+  <option data-lat="48.8566" data-lon="2.3522">Paris</option>
+  <option data-lat="45.7640" data-lon="4.8357">Lyon</option>
+  <option data-lat="43.2965" data-lon="5.3698">Marseille</option>
+<option data-lat="43.6047" data-lon="1.4442">Toulouse</option>
+<option data-lat="44.8378" data-lon="-0.5792">Bordeaux</option>
+<option data-lat="50.6292" data-lon="3.0573">Lille</option>
+<option data-lat="48.5734" data-lon="7.7521">Strasbourg</option>
+<option data-lat="47.2184" data-lon="-1.5536">Nantes</option>
+<option data-lat="45.1885" data-lon="5.7245">Grenoble</option>
+<option data-lat="49.4944" data-lon="0.1079">Le Havre</option>
+<option data-lat="43.7102" data-lon="7.2620">Nice</option>
+<option data-lat="49.2583" data-lon="4.0317">Reims</option>
+<option data-lat="45.7772" data-lon="3.0870">Clermont-Ferrand</option>
+<option data-lat="47.9029" data-lon="1.9093">Orléans</option>
+<option data-lat="46.5802" data-lon="0.3404">Poitiers</option>
+<option data-lat="45.4397" data-lon="4.3872">Saint-Étienne</option>
+<option data-lat="48.3904" data-lon="-4.4861">Brest</option>
+
+</select>
+
+    
+    <p id="logo">logo</p>
+    <label for="">ville</label>
+    <input type="text" name="country" id="country" list="suggestions">
+    <datalist id="suggestions"></datalist>
+
+    <button id="btn">valider</button>
+    <p id="demo">hello</p>
+    <script>
+        const datalist = document.getElementById('suggestions') ;
+        let lastResults = [] ;
+        const bouton = document.getElementById('bouton') ;
+
+        const demo = document.getElementById('demo') ;
+        const select = document.getElementById('ville') ;
+        const logo = document.getElementById('logo') ;
+        const btn = document.getElementById('btn') ;
+        const input = document.getElementById('country') ;
+        let country = "" ;
+        let long = 0; 
+        let lat = 0;
+        select.style.display =  "block" ;
+
+       
+        bouton.addEventListener('click' , () =>{
+                if(select.style.display === "none"){
+                    select.style.display = "block" ;
+                }
+                else {
+                    select.style.display = "none" ;
+                }
+        });
+
+        btn.addEventListener('click' , async ()=>{
+
+           let a  = input.value ; 
+           country = a.split(",")[0]; 
+            console.log(country) ;
+           
+            await geo(country) ;
+           if(country !== ""){
+            select.style.display= "none" ;
+           }
+        
+ });
+     input.addEventListener("input", async () => {
+             const q = input.value.trim();
+             let test ; 
+              if (q.length < 3) {
+                datalist.innerHTML = "";
+                lastResults = [];
+                return;
+                 }
+
+              const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=8&language=fr&format=json`;
+                const res = await fetch(geoUrl);
+                const data = await res.json();
+
+                datalist.innerHTML = "";
+                lastResults = data.results || [];
+
+            lastResults.forEach(r => {
+             const opt = document.createElement("option");
+                opt.value = `${r.name}${r.admin1 ? ", " + r.admin1 : ""}${r.country ? ", " + r.country : ""}`;
+                datalist.appendChild(opt);
+               
+                            });
+                          
+                });
+        select.addEventListener('change' , ()=>{
+            const optionSelected = select.options[select.selectedIndex] ;
+             lat = optionSelected.dataset.lat ;
+             long = optionSelected.dataset.lon ;
+        });
+           
+        async function geo(country) {
+            const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(country)}&count=1&language=fr&format=json`;
+            const geo = await fetch(geoUrl) ;
+            const geoData = await geo.json() ;
+        // console.log("test " + geoData.results[0].latitude);
+            
+            
+            long = geoData.results[0].longitude ;
+            lat = geoData.results[0].latitude ;
+            console.log(geoData.results[0].latitude) ;
+            console.log(geoData.results[0].longitude) ;
+            meteo(lat,long) ;
+        }
+        const optionSelected = select.options[select.selectedIndex];
+        lat = optionSelected.dataset.lat;
+        long = optionSelected.dataset.lon;
+
+        async function meteo(a,b) {
+            let lat = a ;
+            let long = b ;
+
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${long}&current_weather=true` ;
+
+            const response = await fetch(`${url}`);
+            if(!response.ok){
+                throw new Error(`HTTP ${response.status}`);
+
+            }
+            const data = await response.json() ;
+            const temperature = data.current_weather.temperature;
+            console.log(temperature) ;
+            demo.textContent =`${temperature} C`; 
+             
+        }
+        meteo(lat,long);
+         select.addEventListener('change' ,()=>meteo(lat,long));
+            
+        
+    </script>
+</body>
+</html>
