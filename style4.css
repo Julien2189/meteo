@@ -1,0 +1,114 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0a0e27, #1a1a2e);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.weather-widget {
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 8px;
+    padding: 20px;
+    width: 280px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.controls {
+    margin-bottom: 15px;
+}
+
+button {
+    background: rgba(30, 30, 30, 0.9);
+    border: 1px solid rgba(0, 255, 255, 0.4);
+    color: #00ffff;
+    padding: 8px 15px;
+    font-size: 13px;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    margin-bottom: 8px;
+    transition: all 0.2s;
+}
+
+button:hover {
+    background: rgba(50, 50, 50, 0.9);
+    border-color: #00ffff;
+}
+
+select, input {
+    background: rgba(30, 30, 30, 0.9);
+    border: 1px solid rgba(138, 43, 226, 0.4);
+    color: #da70d6;
+    padding: 8px 12px;
+    font-size: 13px;
+    border-radius: 4px;
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+select:focus, input:focus {
+    outline: none;
+    border-color: #8a2be2;
+}
+
+label {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 11px;
+    display: block;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+}
+
+.weather-display {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(0, 255, 255, 0.2);
+    border-radius: 6px;
+    padding: 15px;
+    text-align: center;
+    margin-top: 15px;
+}
+
+#demo {
+    color: #00ffff;
+    font-size: 36px;
+    font-weight: 300;
+    margin: 0;
+    letter-spacing: 1px;
+}
+
+.widget-title {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+/* Style Windows-like scrollbar */
+select::-webkit-scrollbar {
+    width: 8px;
+}
+
+select::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+select::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 255, 0.3);
+    border-radius: 4px;
+}
+
+select::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 255, 255, 0.5);
+}
